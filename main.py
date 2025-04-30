@@ -5,12 +5,12 @@ import os
 
 app = FastAPI()
 
-# Configure CORS - explicitly allow the Vercel domain
+# Configure CORS - explicitly allow the Vercel domain with all methods
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://parkinsons-prediction-b65mhm63p-vathsal14-gmailcoms-projects.vercel.app"],  # Only allow your specific Vercel domain
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_origins=["https://parkinsons-prediction-b65mhm63p-vathsal14-gmailcoms-projects.vercel.app"],
+    allow_credentials=False,  # Set to False for simpler CORS handling
+    allow_methods=["*"],  # Allow all methods
     allow_headers=["*"],
 )
 
