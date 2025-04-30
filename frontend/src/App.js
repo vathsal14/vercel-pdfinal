@@ -34,8 +34,14 @@ function App() {
       console.log("Submitting prediction request...");
       const startTime = Date.now();
       
-      // Use relative path for API endpoint which works both locally and on Vercel
-      const response = await axios.post("/api/predict", formData, {
+      // Use the external API endpoint
+      // In development, this will use the proxy from package.json
+      // In production, use the REACT_APP_API_URL environment variable
+      const API_URL = process.env.NODE_ENV === 'production' 
+        ? process.env.REACT_APP_API_URL || 'https://your-backend-api-url.onrender.com'
+        : '';
+        
+      const response = await axios.post(`${API_URL}/api/predict`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
