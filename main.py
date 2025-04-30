@@ -1,16 +1,16 @@
-from fastapi import FastAPI, Response
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.predict import app as predict_router
 import os
 
 app = FastAPI()
 
-# Configure CORS
+# Configure CORS - explicitly allow the Vercel domain
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://parkinsons-prediction-b65mhm63p-vathsal14-gmailcoms-projects.vercel.app", "*"],  # Include your Vercel frontend URL
+    allow_origins=["https://parkinsons-prediction-b65mhm63p-vathsal14-gmailcoms-projects.vercel.app"],  # Only allow your specific Vercel domain
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
