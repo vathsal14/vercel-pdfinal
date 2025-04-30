@@ -237,7 +237,7 @@ def process_file(file: UploadFile):
             raise HTTPException(status_code=500, detail=f"Error processing brain scan: {str(e)}")
 
 # Prediction endpoint
-@app.post("/")
+@app.post("/predict")
 async def predict(
     file: UploadFile = File(...),
     NP3TOT: int = Form(0),
