@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+pydicom
+nibabel
+nilearn
+dicom2nifti
+scikit-learn
+numpy
+pandas
+python-multipart

@@ -1,0 +1,11 @@
+{
+  "functions": {
+    "api/predict.py": {
+      "memory": 1024,
+      "maxDuration": 300
+    }
+  },
+  "routes": [
+    { "src": "/predict", "dest": "/api/predict.py" }
+  ]
+}
