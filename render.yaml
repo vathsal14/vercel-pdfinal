@@ -1,0 +1,12 @@
+services:
+  # A Python web service
+  - type: web
+    name: parkinsons-prediction-api
+    runtime: python
+    region: singapore  # Choose a region close to your users
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.0
+    plan: free  # Use the free plan for development, upgrade for production
