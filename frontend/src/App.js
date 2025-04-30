@@ -41,7 +41,7 @@ function App() {
         ? process.env.REACT_APP_API_URL || 'https://parkinsons-prediction-api.onrender.com'
         : '';
         
-      const response = await axios.post(`${API_URL}/api/predict`, formData, {
+      const response = await axios.post(`${API_URL}/api`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
