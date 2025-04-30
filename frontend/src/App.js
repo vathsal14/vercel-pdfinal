@@ -38,7 +38,7 @@ function App() {
       // In development, this will use the proxy from package.json
       // In production, use the REACT_APP_API_URL environment variable
       const API_URL = process.env.NODE_ENV === 'production' 
-        ? process.env.REACT_APP_API_URL || 'https://your-backend-api-url.onrender.com'
+        ? process.env.REACT_APP_API_URL || 'https://parkinsons-prediction-api.onrender.com'
         : '';
         
       const response = await axios.post(`${API_URL}/api/predict`, formData, {
