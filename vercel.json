@@ -8,14 +8,9 @@
         "distDir": "build",
         "buildCommand": "cd frontend && npm install && npm run build"
       } 
-    },
-    { 
-      "src": "api/*.py", 
-      "use": "@vercel/python" 
     }
   ],
   "routes": [
-    { "src": "/api/predict", "methods": ["POST"], "dest": "/api/predict.py" },
     { "src": "/static/(.*)", "dest": "/frontend/build/static/$1" },
     { "src": "/favicon.ico", "dest": "/frontend/build/favicon.ico" },
     { "src": "/manifest.json", "dest": "/frontend/build/manifest.json" },
