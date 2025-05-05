@@ -136,18 +136,71 @@ def process_file(file: UploadFile):
                     dicom_file_path = os.path.join(dicom_folder, "image.dcm")
                     shutil.copy(temp_file_path, dicom_file_path)
                     
-                    # Convert DICOM to NIfTI
+                    # Convert DICOM to NIfTI with more robust error handling
                     nifti_output = os.path.join(temp_dir, "converted.nii.gz")
                     logger.info(f"Attempting to convert DICOM directory: {dicom_folder} to {temp_dir}")
-                    dicom2nifti.convert_directory(dicom_folder, temp_dir)
                     
-                    # Find the converted NIfTI file
-                    nifti_file_found = False
-                    for file_name in os.listdir(temp_dir):
-                        if file_name.endswith('.nii.gz') and not file_name.startswith('temp_file'):
-                            nifti_output = os.path.join(temp_dir, file_name)
-                            nifti_file_found = True
-                            break
+                    try:
+                        # Try the standard conversion first
+                        dicom2nifti.convert_directory(dicom_folder, temp_dir)
+                        logger.info("Standard conversion attempted")
+                    except Exception as conv_error:
+                        logger.warning(f"Standard conversion failed: {str(conv_error)}. Trying alternative methods...")
+                        
+                        try:
+                            # Try with reorientation disabled
+                            logger.info("Trying conversion with reorientation disabled")
+                            dicom2nifti.convert_directory(dicom_folder, temp_dir, reorient=False)
+                        except Exception as alt_error:
+                            logger.warning(f"Alternative conversion also failed: {str(alt_error)}")
+                            
+                            # If all else fails, try a direct approach with pydicom and nibabel
+                            try:
+                                logger.info("Trying manual conversion with pydicom and nibabel")
+                                # Read the DICOM file
+                                dcm = pydicom.dcmread(dicom_file_path)
+                                
+                                # Extract pixel data and metadata
+                                pixel_data = dcm.pixel_array
+                                
+                                # Create a simple NIfTI file
+                                import nibabel as nib
+                                import numpy as np
+                                
+                                # Reshape if needed and create NIfTI
+                                if len(pixel_data.shape) == 2:
+                                    # Single slice - add a dimension
+                                    pixel_data = pixel_data.reshape(1, *pixel_data.shape)
+                                
+                                # Create NIfTI image
+                                nifti_img = nib.Nifti1Image(pixel_data, np.eye(4))
+                                
+                                # Save to file
+                                manual_nifti_path = os.path.join(temp_dir, "manual_converted.nii.gz")
+                                nib.save(nifti_img, manual_nifti_path)
+                                logger.info(f"Manual conversion completed: {manual_nifti_path}")
+                            except Exception as manual_error:
+                                logger.error(f"Manual conversion failed: {str(manual_error)}")
+                                raise Exception(f"All conversion methods failed: {str(manual_error)}")
+                    
+                    logger.info("DICOM conversion process completed, checking for output files...")
+                    # List all files in temp directory for debugging
+                    logger.info(f"Files in temp directory: {os.listdir(temp_dir)}")
+                    logger.info(f"Files in DICOM directory: {os.listdir(dicom_folder)}")
+                    
+                    # Check if any of the expected output files exist
+                    if os.path.exists(os.path.join(temp_dir, "manual_converted.nii.gz")):
+                        nifti_output = os.path.join(temp_dir, "manual_converted.nii.gz")
+                        logger.info(f"Using manually converted NIfTI: {nifti_output}")
+                        nifti_file_found = True
+                    
+                    # Find the converted NIfTI file if not already found
+                    if not nifti_file_found:
+                        for file_name in os.listdir(temp_dir):
+                            if file_name.endswith('.nii.gz') and not file_name.startswith('temp_file'):
+                                nifti_output = os.path.join(temp_dir, file_name)
+                                nifti_file_found = True
+                                break
                     
                     if not nifti_file_found:
                         logger.error("DICOM conversion completed but no NIfTI file was found")
@@ -247,6 +300,23 @@ def process_file(file: UploadFile):
             logger.error(f"Error processing file: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Error processing brain scan: {str(e)}")
 
+# Enable CORS for specific routes
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+
+# Add CORS headers directly to the route
+@app.options("/")
+async def options_route():
+    return JSONResponse(
+        content={"message": "CORS preflight handled"},
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        },
+    )
+
 # Prediction endpoint
 @app.post("/")
 async def predict(
@@ -255,6 +325,12 @@ async def predict(
     UPSIT_PRCNTGE: float = Form(0.0),
     COGCHG: int = Form(0)
 ):
+    # Add CORS headers for this specific route
+    headers = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    }
     start_time = time.time()
     
     # Wait for models to be loaded
@@ -301,15 +377,21 @@ async def predict(
 
         processing_time = time.time() - start_time
         
-        return {
-            "right_putamen": float(putamen_r),
-            "left_putamen": float(putamen_l),
-            "right_caudate": float(caudate_r),
-            "left_caudate": float(caudate_l),
-            "risk_percent": float(risk_percent),
-            "risk_status": risk_status,
-            "processing_time_seconds": processing_time
-        }
+        # Return the prediction results with CORS headers
+        from fastapi.responses import JSONResponse
+        
+        return JSONResponse(
+            content={
+                "right_putamen": float(putamen_r),
+                "left_putamen": float(putamen_l),
+                "right_caudate": float(caudate_r),
+                "left_caudate": float(caudate_l),
+                "risk_percent": float(risk_percent),
+                "risk_status": risk_status,
+                "processing_time_seconds": processing_time
+            },
+            headers=headers
+        )
 
     except Exception as e:
         processing_time = time.time() - start_time
