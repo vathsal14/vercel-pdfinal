@@ -1,11 +1,12 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from api.predict import app as predict_router
 import os
 
 app = FastAPI()
 
-# Configure CORS - allow all origins for testing
+# Configure CORS with both middleware and manual headers
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allow all origins for testing
@@ -13,6 +14,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add a custom middleware to ensure CORS headers are set
+@app.middleware("http")
+async def add_cors_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    return response
 
 app.include_router(predict_router, prefix="/api")
 
