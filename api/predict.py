@@ -140,6 +140,9 @@ def process_file(file: UploadFile):
                     nifti_output = os.path.join(temp_dir, "converted.nii.gz")
                     logger.info(f"Attempting to convert DICOM directory: {dicom_folder} to {temp_dir}")
                     
+                    # Initialize nifti_file_found flag here to ensure proper scope
+                    nifti_file_found = False
+                    
                     try:
                         # Try the standard conversion first
                         dicom2nifti.convert_directory(dicom_folder, temp_dir)
