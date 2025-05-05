@@ -34,17 +34,13 @@ function App() {
       console.log("Submitting prediction request...");
       const startTime = Date.now();
       
-      // Use the external API endpoint with a CORS proxy to bypass CORS restrictions
+      // Use the external API endpoint directly
       // In development, this will use the proxy from package.json
-      // In production, use the REACT_APP_API_URL environment variable with a CORS proxy
-      const BACKEND_URL = process.env.NODE_ENV === 'production' 
+      // In production, use the REACT_APP_API_URL environment variable
+      const API_URL = process.env.NODE_ENV === 'production' 
         ? process.env.REACT_APP_API_URL || 'https://parkinsons-prediction-api.onrender.com'
         : '';
       
-      // Use a CORS proxy service to bypass CORS restrictions
-      const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/';
-      const API_URL = `${CORS_PROXY}${BACKEND_URL}`;
-        
       console.log(`Sending request to: ${API_URL}/api`);
       const response = await axios.post(`${API_URL}/api`, formData, {
         headers: {
