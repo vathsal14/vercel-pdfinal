@@ -41,8 +41,11 @@ function App() {
         ? process.env.REACT_APP_API_URL || 'https://parkinsons-prediction-api.onrender.com'
         : '';
       
-      console.log(`Sending request to: ${API_URL}/api`);
-      const response = await axios.post(`${API_URL}/api`, formData, {
+      // Make sure we're using the correct endpoint path
+      // Our backend has the predict endpoint at /api/ (not /api/predict)
+      // Adding trailing slash to ensure proper routing
+      console.log(`Sending request to: ${API_URL}/api/`);
+      const response = await axios.post(`${API_URL}/api/`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
