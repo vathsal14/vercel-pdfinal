@@ -127,37 +127,26 @@ def process_file(file: UploadFile):
             
             # Convert DICOM to NIfTI if needed
             if is_dicom:
-                try:
-                    # Create dicom folder
-                    dicom_folder = os.path.join(temp_dir, "dicom")
-                    os.makedirs(dicom_folder, exist_ok=True)
-                    
-                    # Move DICOM file to the folder
-                    dicom_file_path = os.path.join(dicom_folder, "image.dcm")
-                    shutil.copy(temp_file_path, dicom_file_path)
-                    
-                    # Convert DICOM to NIfTI
-                    nifti_output = os.path.join(temp_dir, "converted.nii.gz")
-                    logger.info(f"Attempting to convert DICOM directory: {dicom_folder} to {temp_dir}")
-                    dicom2nifti.convert_directory(dicom_folder, temp_dir)
-                    
-                    # Find the converted NIfTI file
-                    nifti_file_found = False
-                    for file_name in os.listdir(temp_dir):
-                        if file_name.endswith('.nii.gz') and not file_name.startswith('temp_file'):
-                            nifti_output = os.path.join(temp_dir, file_name)
-                            nifti_file_found = True
-                            break
-                    
-                    if not nifti_file_found:
-                        logger.error("DICOM conversion completed but no NIfTI file was found")
-                        raise Exception("DICOM conversion failed: No NIfTI file produced")
-                    
-                    datscan_img = nib.load(nifti_output)
-                    logger.info(f"Successfully converted DICOM to NIfTI: {nifti_output}")
-                except Exception as dicom_error:
-                    logger.error(f"Error converting DICOM to NIfTI: {str(dicom_error)}")
-                    raise HTTPException(status_code=500, detail=f"Error processing DICOM file: {str(dicom_error)}")
+                # Create dicom folder
+                dicom_folder = os.path.join(temp_dir, "dicom")
+                os.makedirs(dicom_folder, exist_ok=True)
+                
+                # Move DICOM file to the folder
+                dicom_file_path = os.path.join(dicom_folder, "image.dcm")
+                shutil.copy(temp_file_path, dicom_file_path)
+                
+                # Convert DICOM to NIfTI
+                nifti_output = os.path.join(temp_dir, "converted.nii.gz")
+                dicom2nifti.convert_directory(dicom_folder, temp_dir)
+                
+                # Find the converted NIfTI file
+                for file_name in os.listdir(temp_dir):
+                    if file_name.endswith('.nii.gz') and not file_name.startswith('temp_file'):
+                        nifti_output = os.path.join(temp_dir, file_name)
+                        break
+                
+                datscan_img = nib.load(nifti_output)
+                logger.info(f"Successfully converted DICOM to NIfTI: {nifti_output}")
             else:
                 # Load as NIfTI file
                 try:
