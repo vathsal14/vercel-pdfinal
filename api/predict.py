@@ -5,6 +5,14 @@ import nibabel as nib
 from nilearn import image, datasets, masking
 import dicom2nifti
 import pydicom
+import os
+import tempfile
+import time
+import threading
+import logging
+import warnings
+import gzip
+import shutil
 from fastapi import APIRouter, File, UploadFile, HTTPException, Form
 from pydantic import BaseModel
 from io import BytesIO
@@ -164,8 +172,7 @@ def process_file(file: UploadFile):
                                 pixel_data = dcm.pixel_array
                                 
                                 # Create a simple NIfTI file
-                                import nibabel as nib
-                                import numpy as np
+                                # Using the already imported nib and np modules
                                 
                                 # Reshape if needed and create NIfTI
                                 if len(pixel_data.shape) == 2:
