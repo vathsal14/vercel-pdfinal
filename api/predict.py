@@ -140,9 +140,6 @@ def process_file(file: UploadFile):
                     nifti_output = os.path.join(temp_dir, "converted.nii.gz")
                     logger.info(f"Attempting to convert DICOM directory: {dicom_folder} to {temp_dir}")
                     
-                    # Initialize nifti_file_found flag here to ensure proper scope
-                    nifti_file_found = False
-                    
                     try:
                         # Try the standard conversion first
                         dicom2nifti.convert_directory(dicom_folder, temp_dir)
@@ -207,40 +204,7 @@ def process_file(file: UploadFile):
                     
                     if not nifti_file_found:
                         logger.error("DICOM conversion completed but no NIfTI file was found")
-                        
-                        # FALLBACK: For testing purposes, create a simple synthetic NIfTI file
-                        # This allows the rest of the pipeline to work even if DICOM conversion fails
-                        try:
-                            logger.warning("Using synthetic NIfTI data as fallback for testing")
-                            import numpy as np
-                            import nibabel as nib
-                            
-                            # Create a simple 3D array (10x10x10) with some patterns
-                            data = np.zeros((10, 10, 10), dtype=np.float32)
-                            
-                            # Add some synthetic patterns that might resemble brain regions
-                            # Left and right putamen-like regions
-                            data[3:6, 2:5, 3:6] = 2.0  # Right putamen-like
-                            data[3:6, 5:8, 3:6] = 1.8  # Left putamen-like
-                            
-                            # Left and right caudate-like regions
-                            data[3:6, 2:4, 6:8] = 1.7  # Right caudate-like
-                            data[3:6, 6:8, 6:8] = 1.6  # Left caudate-like
-                            
-                            # Create a NIfTI image with identity affine
-                            affine = np.eye(4)
-                            synthetic_img = nib.Nifti1Image(data, affine)
-                            
-                            # Save to file
-                            synthetic_nifti_path = os.path.join(temp_dir, "synthetic.nii.gz")
-                            nib.save(synthetic_img, synthetic_nifti_path)
-                            
-                            nifti_output = synthetic_nifti_path
-                            nifti_file_found = True
-                            logger.info(f"Created synthetic NIfTI file for testing: {nifti_output}")
-                        except Exception as fallback_error:
-                            logger.error(f"Even fallback synthetic data creation failed: {str(fallback_error)}")
-                            raise Exception(f"DICOM conversion failed and fallback also failed: {str(fallback_error)}")
+                        raise Exception("DICOM conversion failed: No NIfTI file produced")
                     
                     datscan_img = nib.load(nifti_output)
                     logger.info(f"Successfully converted DICOM to NIfTI: {nifti_output}")
