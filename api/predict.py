@@ -302,28 +302,14 @@ def process_file(file: UploadFile):
                     
                     if not np.any(region_mask):
                         logger.warning(f"Region {label} not found in atlas")
-                        # Provide realistic default values instead of 0.0
-                        if "Putamen" in label:
-                            default_value = 1.8 if "Right" in label else 1.7  # Typical putamen values
-                        else:  # Caudate
-                            default_value = 1.6 if "Right" in label else 1.5  # Typical caudate values
-                            
-                        logger.info(f"Using default value for {label}: {default_value}")
-                        roi_values[label] = default_value
+                        roi_values[label] = 0.0
                         continue
                     
                     region_voxels = datscan_data[region_mask]
                     
                     if region_voxels.size == 0:
                         logger.warning(f"No voxels found for region {label}")
-                        # Provide realistic default values instead of 0.0
-                        if "Putamen" in label:
-                            default_value = 1.8 if "Right" in label else 1.7  # Typical putamen values
-                        else:  # Caudate
-                            default_value = 1.6 if "Right" in label else 1.5  # Typical caudate values
-                            
-                        logger.info(f"Using default value for {label}: {default_value}")
-                        roi_values[label] = default_value
+                        roi_values[label] = 0.0
                         continue
                     
                     # Calculate region mean
